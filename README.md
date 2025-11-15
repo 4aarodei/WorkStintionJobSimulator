@@ -13,6 +13,11 @@
 
 ---
 
+### Для того щоб ознайомитись з проектом
+https://docs.google.com/document/d/1RM_Mu7vpCMjSV0Mt0SGVZ-eLMSzuFFlH037e1fLFFHs/edit?usp=sharing
+
+---
+
 ## 1. Як запустити
 
 ### Вимоги
