@@ -1,21 +1,30 @@
 ﻿using WorkstationJobSimulator.Models.wsModels;
+using WorkstationJobSimulator.PhysicsRegistration;
 
 namespace WorkstationJobSimulator.Events;
 
 public abstract class SimulationEvent
 {
-    public string EventName { get; set; } = string.Empty;
-    public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+    public string EventName { get; protected set; } = string.Empty;
+    public TimeSpan Duration { get; protected set; } = TimeSpan.Zero;
+
+    /// <summary>
+    /// Додаткові підівенти (наприклад, повітряна тривога під час відключення світла).
+    /// Їх обробляє відповідна фізика (наприклад, TurningOffTheLightsPhysics),
+    /// тому тут це лише контейнер даних.
+    /// </summary>
     public List<SimulationEvent> SubEvents { get; } = new();
 
-    public virtual void Apply(Workstation workstation)
+    /// <summary>
+    /// Виконує подію для вказаної робочої станції, делегуючи всю логіку
+    /// у WorkstationPhysicsEngine та конкретні класи фізики (IEventPhysics).
+    /// </summary>
+    public void Execute(Workstation workstation, WorkstationPhysicsEngine physicsEngine)
     {
-        // За замовчуванням: просто проганяємо підівенти
-        foreach (var sub in SubEvents)
-        {
-            workstation.Log($"  Підівент \"{sub.EventName}\" починає застосовуватись...");
-            sub.Apply(workstation);
-        }
+        if (workstation is null) throw new ArgumentNullException(nameof(workstation));
+        if (physicsEngine is null) throw new ArgumentNullException(nameof(physicsEngine));
+
+        physicsEngine.ApplyPhysics(workstation, this);
     }
 }
 
@@ -26,12 +35,6 @@ public class AirAlarm : SimulationEvent
     {
         EventName = "Повітряна тривога";
         Duration = TimeSpan.FromMinutes(2);
-    }
-
-    public override void Apply(Workstation workstation)
-    {
-        workstation.SetAirAlarm(true, "Подія: повітряна тривога");
-        base.Apply(workstation); // якщо раптом зʼявляться підівенти
     }
 }
 
@@ -58,11 +61,4 @@ public class TurningOffTheLights : SimulationEvent
         int hours = _random.Next(3, 8);
         return TimeSpan.FromHours(hours);
     }
-
-    public override void Apply(Workstation workstation)
-    {
-        workstation.SetPower(false, "Подія: відключення світла");
-        base.Apply(workstation); // тут застосуються підівенти (якщо є AirAlarm)
-    }
 }
-

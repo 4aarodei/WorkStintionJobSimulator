@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using WorkstationJobSimulator.Events;
 using WorkstationJobSimulator.Models.wsModels;
 
-namespace WorkstationJobSimulator.EventPhysic;
+namespace WorkstationJobSimulator.PhysicsRegistration;
 
 public class WorkstationPhysicsEngine
 {
