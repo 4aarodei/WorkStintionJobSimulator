@@ -1,5 +1,5 @@
 ﻿using WorkstationJobSimulator.Events;
-using WorkstationJobSimulator.Physics;
+using WorkstationJobSimulator.Physic;
 
 namespace WorkstationJobSimulator.Models.wsModels;
 
@@ -25,32 +25,51 @@ public class Workstation
     /// <summary>Чи активна зараз повітряна тривога.</summary>
     public bool IsAirAlarmActive { get; private set; } = false;
 
+    /// <summary>
+    /// Поточний симульований час для цієї станції.
+    /// Встановлюється ззовні (наприклад, у Program перед кожною "годиною").
+    /// </summary>
+    public DateTime SimulationTime { get; private set; }
+
     public Workstation(string name)
     {
         Name = name;
         BatteryPhysics = new BatteryPhysics();
+
+        // На старті симульований час ще не відомий,
+        // тому перший лог піде з реальним часом (див. LogState).
         LogState("Ініціалізовано робочу станцію");
         PrintStatus();
+    }
+
+    /// <summary>
+    /// Оновити симульований час станції.
+    /// Викликай це в Program перед генерацією події на поточну годину.
+    /// </summary>
+    public void SetSimulationTime(DateTime simTime)
+    {
+        lock (_lock)
+        {
+            SimulationTime = simTime;
+        }
     }
 
     // =====================
     // Базова утиліта стану
     // =====================
 
-    private void ChangeState(WorkstationState newState, string reason)
-    {
-        if (State == newState) return;
-
-        State = newState;
-        LogState($"Стан змінено на: {State} ({reason})");
-    }
-
     public void LogState(string message)
     {
         lock (_lock)
         {
+            // Якщо сим-час ще не заданий (default == 01.01.0001),
+            // тоді показуємо реальний час, інакше — симульований.
+            var time = SimulationTime == default
+                ? DateTime.Now
+                : SimulationTime;
+
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write($"[{DateTime.Now:HH:mm:ss}] [WS:{Name}] ");
+            Console.Write($"[{time:HH:mm:ss}] [WS:{Name}] ");
             Console.ResetColor();
             Console.WriteLine(message);
         }

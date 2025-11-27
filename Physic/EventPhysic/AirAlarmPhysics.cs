@@ -1,8 +1,9 @@
 ﻿using System;
 using WorkstationJobSimulator.Events;
 using WorkstationJobSimulator.Models.wsModels;
+using WorkstationJobSimulator.Physic.EventPhysic.Interface;
 
-namespace WorkstationJobSimulator.PhysicsRegistration;
+namespace WorkstationJobSimulator.Physic.EventPhysic;
 
 public class AirAlarmPhysics : IEventPhysics
 {

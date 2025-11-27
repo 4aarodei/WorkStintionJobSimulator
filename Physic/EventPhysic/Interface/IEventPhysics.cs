@@ -1,7 +1,7 @@
 ﻿using WorkstationJobSimulator.Events;
 using WorkstationJobSimulator.Models.wsModels;
 
-namespace WorkstationJobSimulator.PhysicsRegistration;
+namespace WorkstationJobSimulator.Physic.EventPhysic.Interface;
 
 public interface IEventPhysics
 {

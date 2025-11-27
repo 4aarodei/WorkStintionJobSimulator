@@ -1,5 +1,5 @@
 ﻿using WorkstationJobSimulator.Models.wsModels;
-using WorkstationJobSimulator.PhysicsRegistration;
+using WorkstationJobSimulator.Physic;
 
 namespace WorkstationJobSimulator.Events;
 
@@ -8,17 +8,13 @@ public abstract class SimulationEvent
     public string EventName { get; protected set; } = string.Empty;
     public TimeSpan Duration { get; protected set; } = TimeSpan.Zero;
 
-    /// <summary>
     /// Додаткові підівенти (наприклад, повітряна тривога під час відключення світла).
     /// Їх обробляє відповідна фізика (наприклад, TurningOffTheLightsPhysics),
     /// тому тут це лише контейнер даних.
-    /// </summary>
     public List<SimulationEvent> SubEvents { get; } = new();
 
-    /// <summary>
     /// Виконує подію для вказаної робочої станції, делегуючи всю логіку
     /// у WorkstationPhysicsEngine та конкретні класи фізики (IEventPhysics).
-    /// </summary>
     public void Execute(Workstation workstation, WorkstationPhysicsEngine physicsEngine)
     {
         if (workstation is null) throw new ArgumentNullException(nameof(workstation));
@@ -28,21 +24,24 @@ public abstract class SimulationEvent
     }
 }
 
-[EventChance(0.5)]
+[EventChance(1.4)] // ~1.4 повітряні тривоги на добу
 public class AirAlarm : SimulationEvent
 {
     public AirAlarm()
     {
         EventName = "Повітряна тривога";
+        // Тривалість як "ціна" двох оголошень (старт/відбій)
         Duration = TimeSpan.FromMinutes(2);
     }
 }
 
-[EventChance(0.35)]
+[EventChance(2.5)] // ~2.5 відключення світла на добу
 public class TurningOffTheLights : SimulationEvent
 {
     private static readonly Random _random = new();
-    private const double AirAlarmOverlapChance = 0.15; // 15% шанс на тривогу під час відключення
+
+    // ймовірність, що під час відключення буде ще й тривога
+    private const double AirAlarmOverlapChance = 0.30; // ~30%
 
     public TurningOffTheLights()
     {
@@ -51,14 +50,15 @@ public class TurningOffTheLights : SimulationEvent
 
         if (_random.NextDouble() < AirAlarmOverlapChance)
         {
-            // під час відключення світла додатково трапляється повітряна тривога
             SubEvents.Add(new AirAlarm());
         }
     }
 
     private static TimeSpan RollDuration()
     {
-        int hours = _random.Next(3, 8);
+        // Типові "вікна" 3–5 год, іноді 6
+        int[] hoursOptions = { 3, 3, 4, 4, 5, 5, 6 };
+        int hours = hoursOptions[_random.Next(hoursOptions.Length)];
         return TimeSpan.FromHours(hours);
     }
 }
